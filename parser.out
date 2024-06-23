@@ -1,0 +1,200 @@
+Created by PLY version 3.11 (http://www.dabeaz.com/ply)
+
+Unused terminals:
+
+    ERROR
+    NUMBER
+
+Grammar
+
+Rule 0     S' -> program
+Rule 1     program -> class_declaration
+Rule 2     class_declaration -> KEYWORD IDENTIFIER SYMBOL SYMBOL method_declaration SYMBOL
+Rule 3     method_declaration -> KEYWORD KEYWORD KEYWORD KEYWORD SYMBOL SYMBOL SYMBOL statement SYMBOL
+Rule 4     statement -> KEYWORD SYMBOL IDENTIFIER SYMBOL SYMBOL
+
+Terminals, with rules where they appear
+
+ERROR                : 
+IDENTIFIER           : 2 4
+KEYWORD              : 2 3 3 3 3 4
+NUMBER               : 
+SYMBOL               : 2 2 2 3 3 3 3 4 4 4
+error                : 
+
+Nonterminals, with rules where they appear
+
+class_declaration    : 1
+method_declaration   : 2
+program              : 0
+statement            : 3
+
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . program
+    (1) program -> . class_declaration
+    (2) class_declaration -> . KEYWORD IDENTIFIER SYMBOL SYMBOL method_declaration SYMBOL
+
+    KEYWORD         shift and go to state 3
+
+    program                        shift and go to state 1
+    class_declaration              shift and go to state 2
+
+state 1
+
+    (0) S' -> program .
+
+
+
+state 2
+
+    (1) program -> class_declaration .
+
+    $end            reduce using rule 1 (program -> class_declaration .)
+
+
+state 3
+
+    (2) class_declaration -> KEYWORD . IDENTIFIER SYMBOL SYMBOL method_declaration SYMBOL
+
+    IDENTIFIER      shift and go to state 4
+
+
+state 4
+
+    (2) class_declaration -> KEYWORD IDENTIFIER . SYMBOL SYMBOL method_declaration SYMBOL
+
+    SYMBOL          shift and go to state 5
+
+
+state 5
+
+    (2) class_declaration -> KEYWORD IDENTIFIER SYMBOL . SYMBOL method_declaration SYMBOL
+
+    SYMBOL          shift and go to state 6
+
+
+state 6
+
+    (2) class_declaration -> KEYWORD IDENTIFIER SYMBOL SYMBOL . method_declaration SYMBOL
+    (3) method_declaration -> . KEYWORD KEYWORD KEYWORD KEYWORD SYMBOL SYMBOL SYMBOL statement SYMBOL
+
+    KEYWORD         shift and go to state 7
+
+    method_declaration             shift and go to state 8
+
+state 7
+
+    (3) method_declaration -> KEYWORD . KEYWORD KEYWORD KEYWORD SYMBOL SYMBOL SYMBOL statement SYMBOL
+
+    KEYWORD         shift and go to state 9
+
+
+state 8
+
+    (2) class_declaration -> KEYWORD IDENTIFIER SYMBOL SYMBOL method_declaration . SYMBOL
+
+    SYMBOL          shift and go to state 10
+
+
+state 9
+
+    (3) method_declaration -> KEYWORD KEYWORD . KEYWORD KEYWORD SYMBOL SYMBOL SYMBOL statement SYMBOL
+
+    KEYWORD         shift and go to state 11
+
+
+state 10
+
+    (2) class_declaration -> KEYWORD IDENTIFIER SYMBOL SYMBOL method_declaration SYMBOL .
+
+    $end            reduce using rule 2 (class_declaration -> KEYWORD IDENTIFIER SYMBOL SYMBOL method_declaration SYMBOL .)
+
+
+state 11
+
+    (3) method_declaration -> KEYWORD KEYWORD KEYWORD . KEYWORD SYMBOL SYMBOL SYMBOL statement SYMBOL
+
+    KEYWORD         shift and go to state 12
+
+
+state 12
+
+    (3) method_declaration -> KEYWORD KEYWORD KEYWORD KEYWORD . SYMBOL SYMBOL SYMBOL statement SYMBOL
+
+    SYMBOL          shift and go to state 13
+
+
+state 13
+
+    (3) method_declaration -> KEYWORD KEYWORD KEYWORD KEYWORD SYMBOL . SYMBOL SYMBOL statement SYMBOL
+
+    SYMBOL          shift and go to state 14
+
+
+state 14
+
+    (3) method_declaration -> KEYWORD KEYWORD KEYWORD KEYWORD SYMBOL SYMBOL . SYMBOL statement SYMBOL
+
+    SYMBOL          shift and go to state 15
+
+
+state 15
+
+    (3) method_declaration -> KEYWORD KEYWORD KEYWORD KEYWORD SYMBOL SYMBOL SYMBOL . statement SYMBOL
+    (4) statement -> . KEYWORD SYMBOL IDENTIFIER SYMBOL SYMBOL
+
+    KEYWORD         shift and go to state 16
+
+    statement                      shift and go to state 17
+
+state 16
+
+    (4) statement -> KEYWORD . SYMBOL IDENTIFIER SYMBOL SYMBOL
+
+    SYMBOL          shift and go to state 18
+
+
+state 17
+
+    (3) method_declaration -> KEYWORD KEYWORD KEYWORD KEYWORD SYMBOL SYMBOL SYMBOL statement . SYMBOL
+
+    SYMBOL          shift and go to state 19
+
+
+state 18
+
+    (4) statement -> KEYWORD SYMBOL . IDENTIFIER SYMBOL SYMBOL
+
+    IDENTIFIER      shift and go to state 20
+
+
+state 19
+
+    (3) method_declaration -> KEYWORD KEYWORD KEYWORD KEYWORD SYMBOL SYMBOL SYMBOL statement SYMBOL .
+
+    SYMBOL          reduce using rule 3 (method_declaration -> KEYWORD KEYWORD KEYWORD KEYWORD SYMBOL SYMBOL SYMBOL statement SYMBOL .)
+
+
+state 20
+
+    (4) statement -> KEYWORD SYMBOL IDENTIFIER . SYMBOL SYMBOL
+
+    SYMBOL          shift and go to state 21
+
+
+state 21
+
+    (4) statement -> KEYWORD SYMBOL IDENTIFIER SYMBOL . SYMBOL
+
+    SYMBOL          shift and go to state 22
+
+
+state 22
+
+    (4) statement -> KEYWORD SYMBOL IDENTIFIER SYMBOL SYMBOL .
+
+    SYMBOL          reduce using rule 4 (statement -> KEYWORD SYMBOL IDENTIFIER SYMBOL SYMBOL .)
+

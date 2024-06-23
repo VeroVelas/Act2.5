@@ -9,8 +9,9 @@ if not os.path.exists(UPLOAD_FOLDER):
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Definir las palabras reservadas y símbolos
-keywords = {'int', 'for', 'if', 'else', 'while', 'return', 'System.out.println', 'public', 'class', 'static', 'void', 'String'}
+keywords = {'int', 'for', 'if', 'else', 'while', 'return', 'System', 'out', 'println', 'public', 'class', 'static', 'void', 'String','("HolaMundo");','String[]','args)','System.out.println'}
 symbols = {';', '{', '}', '(', ')'}
+
 
 # Función de análisis léxico
 def lexical_analysis(code):
@@ -88,11 +89,69 @@ def syntactic_analysis(code):
                     break
     return result
 
+# Función de análisis semántico
+def semantic_analysis(code):
+    result = []
+    declared_classes = set()
+    declared_methods = set()
+    declared_variables = set()
+    lines = code.split('\n')
+    for line_number, line in enumerate(lines, start=1):
+        stripped_line = line.strip()
+        tokens = stripped_line.split()
+
+        # Identificar clases declaradas
+        if 'class' in tokens:
+            class_name_index = tokens.index('class') + 1
+            if class_name_index < len(tokens):
+                declared_classes.add(tokens[class_name_index])
+            else:
+                result.append((line_number, 'Error: Falta la definición de la clase', False))
+
+        # Identificar el método main y sus parámetros
+        if 'public static void main' in stripped_line:
+            main_pattern = r'public static void main\s*\(\s*String\s*\[\s*\]\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\)'
+            match = re.match(main_pattern, stripped_line)
+            if match:
+                declared_methods.add('main')
+                declared_variables.add(match.group(1))
+            else:
+                result.append((line_number, 'Error: Método main mal definido', False))
+
+        # Identificar variables declaradas
+        if 'int' in tokens or 'String' in tokens:
+            type_index = tokens.index('int') if 'int' in tokens else tokens.index('String')
+            var_name_index = type_index + 1
+            if var_name_index < len(tokens):
+                declared_variables.add(tokens[var_name_index])
+            else:
+                result.append((line_number, 'Error: Falta el nombre de la variable', False))
+
+        # Verificar uso de variables no declaradas
+        for token in tokens:
+            if token not in keywords and token not in symbols and token not in declared_classes and token not in declared_methods and token not in declared_variables:
+                result.append((line_number, f'Error: Variable no declarada {token}', False))
+            else:
+                if token in symbols:
+                    continue
+                if 'System.out.println' in stripped_line:
+                    declared_methods.add('System.out.println')
+                if 'println' in stripped_line:
+                    declared_methods.add('println')
+
+    if not declared_classes:
+        result.append((1, 'Error: Falta la definición de clase', False))
+    if 'main' not in declared_methods:
+        result.append((1, 'Error: Falta el método main', False))
+
+    return result
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     code = ""
     lexical_result = []
     syntactic_result = []
+    semantic_result = []
     if request.method == 'POST':
         if 'file' in request.files and request.files['file'].filename != '':
             file = request.files['file']
@@ -104,10 +163,11 @@ def index():
             code = request.form['code']
         else:
             return "No file selected or code provided"
-        
+
         lexical_result = lexical_analysis(code)
         syntactic_result = syntactic_analysis(code)
-        
+        semantic_result = semantic_analysis(code)
+
     return render_template_string("""
     <!DOCTYPE html>
     <html lang="es">
@@ -179,65 +239,94 @@ def index():
                 overflow-x: auto;
             }
         </style>
-        <title>Analizador Léxico y Sintáctico</title>
+        <title>Analizador Léxico, Sintáctico y Semántico</title>
     </head>
     <body>
-        <h1>Analizador Léxico y Sintáctico</h1>
+        <h1>Analizador Léxico, Sintáctico y Semántico</h1>
         <form method="POST" enctype="multipart/form-data">
             <label for="file">Subir Archivo:</label>
             <input type="file" name="file"><br><br>
-            <label for="code">O ingresa el código aquí:</label><br>
-            <textarea name="code" rows="10" cols="50">{{ code }}</textarea><br><br>
-            <input type="submit" value="Ejecutar">
+            <label for="code">O introducir código:</label>
+            <textarea name="code" rows="10" cols="50">{{code}}</textarea><br>
+            <input type="submit" value="Analizar">
         </form>
-
+        
         {% if lexical_result %}
-        <h2>Análisis Léxico</h2>
-        <div class="table-container">
-            <table>
-                <tr>
-                    <th>Línea</th>
-                    <th>Posición</th>
-                    <th>Tipo de Token</th>
-                    <th>Valor</th>
-                </tr>
-                {% for line in lexical_result %}
-                <tr>
-                    <td>{{ line[0] }}</td>
-                    <td>{{ line[1] }}</td>
-                    <td>{{ line[2] }}</td>
-                    <td>{{ line[3] }}</td>
-                </tr>
-                {% endfor %}
-            </table>
-        </div>
-        <p>Total de tokens: {{ lexical_result|length }}</p>
+            <h2>Análisis Léxico</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Línea</th>
+                            <th>Índice</th>
+                            <th>Tipo</th>
+                            <th>Token</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for line_number, index, tipo, token in lexical_result %}
+                            <tr>
+                                <td>{{ line_number }}</td>
+                                <td>{{ index }}</td>
+                                <td>{{ tipo }}</td>
+                                <td>{{ token }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         {% endif %}
-
+        
         {% if syntactic_result %}
-        <h2>Análisis Sintáctico</h2>
-        <div class="table-container">
-            <table>
-                <tr>
-                    <th>Línea</th>
-                    <th>Tipo de Estructura</th>
-                    <th>Estructura Correcta</th>
-                    <th>Estructura Incorrecta</th>
-                </tr>
-                {% for line in syntactic_result %}
-                <tr>
-                    <td>{{ line[0] }}</td>
-                    <td>{{ line[1] }}</td>
-                    <td>{% if line[2] %}X{% endif %}</td>
-                    <td>{% if not line[2] %}X{% endif %}</td>
-                </tr>
-                {% endfor %}
-            </table>
-        </div>
+            <h2>Análisis Sintáctico</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Línea</th>
+                            <th>Token</th>
+                            <th>Correcto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for line_number, token, correct in syntactic_result %}
+                            <tr>
+                                <td>{{ line_number }}</td>
+                                <td>{{ token }}</td>
+                                <td>{{ 'Sí' if correct else 'No' }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+        
+        {% if semantic_result %}
+            <h2>Análisis Semántico</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Línea</th>
+                            <th>Error</th>
+                            <th>Correcto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for line_number, error, correct in semantic_result %}
+                            <tr>
+                                <td>{{ line_number }}</td>
+                                <td>{{ error }}</td>
+                                <td>{{ 'Sí' if correct else 'No' }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         {% endif %}
     </body>
     </html>
-    """, code=code, lexical_result=lexical_result, syntactic_result=syntactic_result)
+    """, code=code, lexical_result=lexical_result, syntactic_result=syntactic_result, semantic_result=semantic_result)
 
 if __name__ == '__main__':
     app.run(debug=True)
